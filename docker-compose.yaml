@@ -1,0 +1,8 @@
+services:
+  llm-size-service:
+    image: ghcr.io/radu-catrangiu/llm-size-service:latest
+    container_name: llm-size-service
+    ports:
+      - 3000:3000
+    env_file: .env
+    restart: unless-stopped

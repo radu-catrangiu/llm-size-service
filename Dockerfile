@@ -1,14 +1,29 @@
-# FROM alpine:3.20
-FROM node:lts-alpine
+ARG IMAGE=golang:1.23-alpine
+ARG EXPOSED_PORT=3000
 
-RUN apk add git git-lfs
+# Build stage
+
+FROM ${IMAGE} AS build-stage
 
 WORKDIR /app
 
+COPY go.* ./
+RUN go mod download
+
 COPY . .
 
-RUN npm install
+RUN ls -la
 
-EXPOSE 3000
+RUN CGO_ENABLED=0 GOOS=linux go build -o /llm-size-service ./cmd/llm-size-service/main.go
 
-CMD [ "node", "src/index.js" ]
+# Run stage
+
+FROM ${IMAGE} AS run-stage
+
+RUN apk add git git-lfs
+
+COPY --from=build-stage /llm-size-service /llm-size-service
+
+EXPOSE ${EXPOSED_PORT}
+
+CMD [ "/llm-size-service" ]
